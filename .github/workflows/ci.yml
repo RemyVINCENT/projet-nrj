@@ -7,7 +7,6 @@ on:
     branches: [ main ]
 
 jobs:
-  # 1. Scan de secrets sur tout l'historique
   gitleaks:
     name: 🔍 Scan Secrets (Gitleaks)
     runs-on: ubuntu-latest
@@ -17,10 +16,7 @@ jobs:
           fetch-depth: 0
       - name: Gitleaks
         uses: gitleaks/gitleaks-action@v2
-        env:
-          GITLEAKS_CONFIG: gitleaks.toml
 
-  # 2. Tests + audit des dépendances
   test:
     name: ✅ Tests & Audit
     runs-on: ubuntu-latest
@@ -29,20 +25,16 @@ jobs:
         working-directory: backend
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
           cache-dependency-path: backend/package-lock.json
-
       - name: Installer les dépendances
         run: npm ci
-
       - name: Audit des vulnérabilités
         run: npm audit --audit-level=high
         continue-on-error: true
-
       - name: Lancer les tests
         run: npm test
         env:
