@@ -1,10 +1,14 @@
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 const { execFile } = require('child_process');
 
 const app = express();
 app.use(cors());
 app.use(express.json());
+
+// Sert le frontend statique (index.html, etc.)
+app.use(express.static(path.join(__dirname, '..', '..', 'frontend')));
 
 // Fonction d'échappement HTML pour prévenir le XSS
 function escapeHtml(str) {
@@ -56,7 +60,9 @@ app.get('/api/welcome', (req, res) => {
   res.send(`<h1>Bienvenue ${escapeHtml(name)}</h1>`);
 });
 
-if (process.env.NODE_ENV !== 'production' || process.env.DOCKER_RUN === 'true') {
+// Ne démarre le serveur QUE si le fichier est lancé directement (node app.js)
+// -> jamais pendant les tests (import) => plus de EADDRINUSE
+if (require.main === module) {
   const PORT = process.env.PORT || 3000;
   app.listen(PORT, () => {
     console.log(`Le serveur ecoute activement sur le port ${PORT}`);
